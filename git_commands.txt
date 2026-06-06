@@ -1,0 +1,11 @@
+# Run these commands on your local clone of https://github.com/0fariid0/Toolbox
+cp /path/to/fixed/script.sh ./script.sh
+cp /path/to/fixed/README.md ./README.md
+cp /path/to/fixed/toolbox.sh ./toolbox.sh
+
+git add script.sh README.md toolbox.sh
+git commit -m "Fix installer script and update README"
+git push origin main
+
+# Then test:
+bash <(curl -Ls https://raw.githubusercontent.com/0fariid0/Toolbox/main/script.sh)
