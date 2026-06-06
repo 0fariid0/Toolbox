@@ -22,7 +22,7 @@
 دستور اجرای اسکریپت:
 
 ```bash
-https://raw.githubusercontent.com/Digitalvps-Ir/Digitalvps-Toolbox/main/script.sh
+https://raw.githubusercontent.com/0fariid0/Toolbox/main/script.sh
 ```
 
 ## 🌟 معرفی پروژه
