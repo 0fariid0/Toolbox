@@ -1,56 +1,57 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
 GREEN='\e[32m'
 CYAN='\e[36m'
 WHITE='\e[97m'
 YELLOW='\e[93m'
-if [[ "$(tput colors)" -ge 256 ]]; then
-  RED='\e[38;5;196m'      # Vivid red
-  ORANGE='\e[38;5;202m'   # Warm orange
-  PINK='\e[38;5;205m'     # Hot pink
-  RESET='\e[0m'
-elif [[ "$(tput colors)" -ge 8 ]]; then
-  RED='\e[1;31m'          # Bold red
-  ORANGE='\e[1;33m'       # Fallback yellow-orange
-  PINK='\e[95m'           # Light magenta
-  RESET='\e[0m'
+RED='\e[1;31m'
+RESET='\e[0m'
+
+REPO_RAW_URL="https://raw.githubusercontent.com/0fariid0/Toolbox/main"
+TOOLBOX_URL="${REPO_RAW_URL}/toolbox.sh"
+INSTALL_PATH="${INSTALL_PATH:-/usr/local/bin/toolbox}"
+TMP_FILE="$(mktemp)"
+
+cleanup() {
+  rm -f "$TMP_FILE"
+}
+trap cleanup EXIT
+
+echo -e "${GREEN}======================================================${RESET}"
+echo -e "${WHITE}                    ToolBox${RESET}"
+echo -e "${CYAN}      https://github.com/0fariid0/Toolbox${RESET}"
+echo -e "${GREEN}======================================================${RESET}"
+
+if [[ "${EUID}" -ne 0 ]]; then
+  if command -v sudo >/dev/null 2>&1; then
+    SUDO='sudo'
+  else
+    echo -e "${RED}❌ Please run as root, or install sudo.${RESET}"
+    exit 1
+  fi
 else
-  RED=''; ORANGE=''; PINK=''; RESET=''
+  SUDO=''
 fi
 
-echo -e "${GREEN}======================================================${RESET}"
-
-echo -e "${RED}"
-echo "██████╗░██╗░██████╗░██╗████████╗░█████╗░██╗░░░░░ ██╗░░░██╗██████╗░░██████╗"
-echo "██╔══██╗██║██╔════╝░██║╚══██╔══╝██╔══██╗██║░░░░░ ██║░░░██║██╔══██╗██╔════╝"
-echo "██║░░██║██║██║░░██╗░██║░░░██║░░░███████║██║░░░░░ ╚██╗░██╔╝██████╔╝╚█████╗░"
-echo "██║░░██║██║██║░░╚██╗██║░░░██║░░░██╔══██║██║░░░░░ ░╚████╔╝░██╔═══╝░░╚═══██╗"
-echo "██████╔╝██║╚██████╔╝██║░░░██║░░░██║░░██║███████╗ ░░╚██╔╝░░██║░░░░░██████╔╝"
-echo "╚═════╝░╚═╝░╚═════╝░╚═╝░░░╚═╝░░░╚═╝░░╚═╝╚══════╝ ░░░╚═╝░░░╚═╝░░░░░╚═════╝░"
-echo
-echo "████████╗░█████╗░░█████╗░██╗░░░░░ ██████╗░░█████╗░██╗░░██╗"
-echo "╚══██╔══╝██╔══██╗██╔══██╗██║░░░░░ ██╔══██╗██╔══██╗╚██╗██╔╝"
-echo "░░░██║░░░██║░░██║██║░░██║██║░░░░░ ██████╦╝██║░░██║░╚███╔╝░"
-echo "░░░██║░░░██║░░██║██║░░██║██║░░░░░ ██╔══██╗██║░░██║░██╔██╗░"
-echo "░░░██║░░░╚█████╔╝╚█████╔╝███████╗ ██████╦╝╚█████╔╝██╔╝╚██╗"
-echo "░░░╚═╝░░░░╚════╝░░╚════╝░╚══════╝ ╚═════╝░░╚════╝░╚═╝░░╚═╝"
-echo -e "${RESET}"
-
-echo -e "${WHITE}       DigitalVPS.ir VPS ToolBox${RESET}"
-echo -e "${WHITE}         ${CYAN}https://github.com/Digitalvps-Ir${RESET}"
-echo -e "${WHITE}     Developed by: ${CYAN}https://github.com/ParsaKSH${RESET}"
-
-echo -e "${GREEN}======================================================${RESET}"
-
-URL="https://github.com/ParsaKSH/Digitalvps-Toolbox/releases/download/v1.2.2/digitalvps-toolbox_1.2.2.deb"
-
-dpkg -r toolbox
-
-echo -e "\033[36m📥 Downloading toolbox script...\033[0m"
-if wget "$URL"; then
-    dpkg -i "toolbox_1.2.1.deb"
-    echo -e "\033[32m✅ Installed toolbox_1.2.2 successfully at:\033[0m \033[1m$DEST\033[0m"
-    echo -e "\033[36m🚀 You can now run it using:\033[0m \033[1;33mtoolbox\033[0m"
+if command -v curl >/dev/null 2>&1; then
+  echo -e "${CYAN}📥 Downloading toolbox from GitHub...${RESET}"
+  curl -fsSL "$TOOLBOX_URL" -o "$TMP_FILE"
+elif command -v wget >/dev/null 2>&1; then
+  echo -e "${CYAN}📥 Downloading toolbox from GitHub...${RESET}"
+  wget -qO "$TMP_FILE" "$TOOLBOX_URL"
 else
-    echo -e "\033[31m❌ Failed to download toolbox script.\033[0m"
-    exit 1
+  echo -e "${RED}❌ curl or wget is required.${RESET}"
+  exit 1
+fi
+
+if ! bash -n "$TMP_FILE"; then
+  echo -e "${RED}❌ Downloaded toolbox.sh has a syntax error. Installation aborted.${RESET}"
+  exit 1
+fi
+
+$SUDO install -m 755 "$TMP_FILE" "$INSTALL_PATH"
+
+echo -e "${GREEN}✅ ToolBox installed successfully.${RESET}"
+echo -e "${WHITE}Install path:${RESET} ${YELLOW}${INSTALL_PATH}${RESET}"
+echo -e "${CYAN}🚀 Run it with:${RESET} ${YELLOW}toolbox${RESET}"
